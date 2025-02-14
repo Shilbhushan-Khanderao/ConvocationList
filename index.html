@@ -1,115 +1,123 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Student Attendance Manager</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 10px;
-        }
-        .container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 100%;
-            max-width: 400px;
-            margin: auto;
-        }
-        .students-list, .present-students {
-            width: 100%;
-            margin-bottom: 20px;
-        }
-        .present-students {
-            background-color: #d4f7d4;
-            padding: 10px;
-            border-radius: 5px;
-        }
-        .student {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin: 5px 0;
-            padding: 5px;
-            background: #f9f9f9;
-            border-radius: 5px;
-        }
-        .student input {
-            margin-right: 10px;
-        }
-        h2, h3 {
-            text-align: center;
-        }
+      body {
+        font-family: Arial, sans-serif;
+        margin: 10px;
+      }
+      .container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+        max-width: 400px;
+        margin: auto;
+      }
+      .students-list,
+      .present-students {
+        width: 100%;
+        margin-bottom: 20px;
+      }
+      .present-students {
+        background-color: #d4f7d4;
+        padding: 10px;
+        border-radius: 5px;
+      }
+      .student {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin: 5px 0;
+        padding: 5px;
+        background: #f9f9f9;
+        border-radius: 5px;
+      }
+      .student input {
+        margin-right: 10px;
+      }
+      h2,
+      h3 {
+        text-align: center;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <h2>Student Attendance Manager</h2>
     <div class="container">
-        <div class="students-list">
-            <h3>All Students</h3>
-            <div id="students"></div>
-        </div>
-        <div class="present-students">
-            <h3>Present Students</h3>
-            <ul id="presentList"></ul>
-        </div>
+      <div class="students-list">
+        <h3>All Students</h3>
+        <div id="students"></div>
+      </div>
+      <div class="present-students">
+        <h3>Present Students</h3>
+        <ul id="presentList"></ul>
+      </div>
     </div>
 
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbzLWOVSTl_QlYp8d2Tc5N2yJqxX0GhjCGMqiDR1EGHLdMcDUOZlA8qHZGZESanYKHljcA/exec";
+      const API_URL =
+        "https://script.google.com/macros/s/AKfycbz52kiL21iynPvlUYP2YMPpgwG90vu9UIU_40scyEmGCqaaoR1RHtPzEGxir825s3zmvg/exec";
 
-        async function fetchStudents() {
-            try {
-                let response = await fetch(API_URL);
-                let students = await response.json();
-                renderStudents(students);
-            } catch (error) {
-                console.error("Error fetching data:", error);
-            }
+      async function fetchStudents() {
+        try {
+          let response = await fetch(API_URL, {
+            method: "GET",
+            headers: { "Content-Type": "application/json" },
+          });
+          let students = await response.json();
+          renderStudents(students);
+        } catch (error) {
+          console.error("CORS Error: Unable to fetch students", error);
         }
+      }
 
-        function renderStudents(students) {
-            const studentsContainer = document.getElementById("students");
-            const presentList = document.getElementById("presentList");
-            studentsContainer.innerHTML = "";
-            presentList.innerHTML = "";
+      function renderStudents(students) {
+        const studentsContainer = document.getElementById("students");
+        const presentList = document.getElementById("presentList");
+        studentsContainer.innerHTML = "";
+        presentList.innerHTML = "";
 
-            students.forEach(student => {
-                const div = document.createElement("div");
-                div.classList.add("student");
-                const checkbox = document.createElement("input");
-                checkbox.type = "checkbox";
-                checkbox.id = student.prn;
-                checkbox.checked = student.present;
-                checkbox.addEventListener("change", () =>
-                    updateAttendance(student.prn, checkbox.checked)
-                );
-                const label = document.createElement("label");
-                label.htmlFor = student.prn;
-                label.textContent = `${student.prn} - ${student.name}`;
-                div.appendChild(label);
-                div.appendChild(checkbox);
-                studentsContainer.appendChild(div);
+        students.forEach((student) => {
+          const div = document.createElement("div");
+          div.classList.add("student");
+          const checkbox = document.createElement("input");
+          checkbox.type = "checkbox";
+          checkbox.id = student.prn;
+          checkbox.checked = student.present;
+          checkbox.addEventListener("change", () =>
+            updateAttendance(student.prn, checkbox.checked)
+          );
+          const label = document.createElement("label");
+          label.htmlFor = student.prn;
+          label.textContent = `${student.prn} - ${student.name}`;
+          div.appendChild(label);
+          div.appendChild(checkbox);
+          studentsContainer.appendChild(div);
 
-                if (student.present) {
-                    const li = document.createElement("li");
-                    li.textContent = `${student.prn} - ${student.name}`;
-                    presentList.appendChild(li);
-                }
-            });
+          if (student.present) {
+            const li = document.createElement("li");
+            li.textContent = `${student.prn} - ${student.name}`;
+            presentList.appendChild(li);
+          }
+        });
+      }
+
+      async function updateAttendance(prn, isPresent) {
+        try {
+          await fetch(API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ prn, present: isPresent }),
+          });
+          fetchStudents();
+        } catch (error) {
+          console.error("CORS Error: Unable to update attendance", error);
         }
-
-        async function updateAttendance(prn, isPresent) {
-            try {
-                await fetch(`${API_URL}?prn=${prn}&present=${isPresent}`, { method: "POST" });
-                fetchStudents();
-            } catch (error) {
-                console.error("Error updating attendance:", error);
-            }
-        }
-
-        fetchStudents();
+      }
     </script>
-</body>
+  </body>
 </html>
